@@ -1,0 +1,20 @@
+#!/bin/sh
+
+PREREQ=""
+
+prereqs()
+{
+    echo "$PREREQ"
+}
+
+case $1 in
+    prereqs)
+        prereqs
+        exit 0
+    ;;
+esac
+
+sleep 1
+
+echo "> Starting OpenVPN daemon"
+openvpn --daemon --config /etc/openvpn/<PLACEHOLDER.conf> # REPLACE PLACEHOLDER WITH VPN CONFIG
