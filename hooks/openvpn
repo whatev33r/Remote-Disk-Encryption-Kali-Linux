@@ -1,0 +1,30 @@
+#!/bin/sh
+
+# Add hookscripts which need to be executed before this script
+PREREQ="dropbear"
+
+prereqs() {
+    echo "$PREREQ"
+}
+
+case "$1" in
+    prereqs)
+        prereqs
+        exit 0
+    ;;
+esac
+
+# Load helper functions
+. /usr/share/initramfs-tools/hook-functions
+
+# Helper function to copy an executable to be available in initramfs
+copy_exec /usr/sbin/dhclient /usr/sbin
+copy_exec /usr/sbin/openvpn /usr/sbin
+
+# Copy other openvpn srcs
+cp -rfpL /etc/openvpn/ ${DESTDIR}/etc
+
+# End
+echo "> DESTDIR: ${DESTDIR}"
+echo "> Including OpenVPN into initramfs - SUCCESSFUL"
+exit 0
