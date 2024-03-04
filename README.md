@@ -1,8 +1,8 @@
-# Remote Disk Encryption Initramfs Hooks
+# Remote Disk Encryption Setup Guide
 This guide provides step-by-step instructions for setting up Remote Disk Encryption on  Kali Linux.
 
-# Preparation
-## 1. Install dropbear-initramfs
+## Preparation
+### 1. Install dropbear-initramfs
 To initiate the setup process, ensure that your system's packages are up to date and install the **dropbear-initramfs** package.
 
 ```bash
@@ -10,7 +10,7 @@ apt update
 apt install dropbear-initramfs
 ```
 
-## 2. Remove cryptsetup-nuke-password
+### 2. Remove cryptsetup-nuke-password
 To address issues with "cryptroot-unlock" encountering a "Timeout reached while waiting for askpass" during startup, it is mandatory to remove the **cryptsetup-nuke-password** package since it is installed by default on Kali Linux.
 
 Cyptsetup-nuke-password replaces `/lib/cryptsetup/askpass` with a script that calls the original ‘askpass’ binary (renamed to `/lib/cryptsetup/askpass.cryptsetup`),
@@ -20,8 +20,9 @@ and erases the LUKS header if its digest value matches a special “nuke” hash
 apt remove cryptsetup-nuke-password
 ```
 
-# Configure dropbear-initramfs
-## 1. Modify dropbear config
+
+## Configure dropbear-initramfs
+### 1. Modify dropbear config
 Edit the configuration file located at `/etc/dropbear/initramfs/dropbear.conf` and adjust the **DROPBEAR_OPTIONS** according to the specified requirements.
 
 ```bash
@@ -36,7 +37,7 @@ DROPBEAR_OPTIONS="-I 600 -j -k -p 2222 -s -c cryptroot-unlock"
 - `-s`: Disable password logins.
 - `-c cryptroot-unlock` Automatically execute `cryptroot-unlock` after establishing the connection.
 
-**`/etc/dropbear/initramfs/dropbear.conf` should look like this:**
+> **/etc/dropbear/initramfs/dropbear.conf** should look like this:
 ```bash
 #
 # Configuration options for the dropbear-initramfs boot scripts.
@@ -73,8 +74,12 @@ DROPBEAR_OPTIONS="-I 600 -j -k -p 2222 -s -c cryptroot-unlock"
 #DROPBEAR_SHUTDOWN_TIMEOUT=60
 ```
 
-## 2. Create authorized_keys file
-Each user must generate a unique RSA key on their client machine using the command `ssh-keygen -t rsa -f .ssh/unlock_luks`. 
+### 2. Create authorized_keys file
+Every user is required to generate a unique RSA key on their individual client machines. This RSA key pair includes a public key, which will be shared for authentication, and a private key, which should be securely retained on the user's machine.
+
+```bash
+ssh-keygen -t rsa -f .ssh/unlock_luks
+```
 
 Collect and append the public keys of all users requiring access to the machine to a newly created **authorized_keys** file located in `/etc/dropbear/initramfs`. This file serves as the authentication list for the Dropbear SSH server during the early boot process, allowing specified users to remotely unlock the root disk.
 
@@ -83,15 +88,16 @@ touch /etc/dropbear/initramfs/authorized_keys
 chmod 600 /etc/dropbear/initramfs/authorized_keys
 ```
 
-# Adapt initramfs
-## 1. Include tun kernel module in initramfs
+
+## Adapt initramfs
+### 1. Include tun kernel module in initramfs
 Set up the system to load the tun kernel module automatically during startup. This facilitates the establishment of a VPN connection from within the BusyBox environment.
 
 ```bash
 echo "tun" >> modules
 ```
 
- **`/etc/initramfs-tools/modules` should look like this:**
+> **/etc/initramfs-tools/modules** should look like this:
 ```bash
 # List of modules that you want to include in your initramfs.
 # They will be loaded at boot time in the order below.
@@ -108,7 +114,7 @@ bochs
 tun
 ```
 
-## 2. Setup networking in initramfs config
+### 2. Setup networking in initramfs config
 Update the networking configuration in `/etc/initramfs-tools/initramfs.conf` by adapting the relevant lines with either a **dynamic** (DHCP) configuration or a **static** IP configuration. Adjust the settings based on your network requirements.
 
 **A) Dynamic (DHCP) Configuration**:
@@ -123,29 +129,57 @@ DEVICE=eth0
 IP=192.168.13.37::192.168.13.1:255.255.255.0::eth0:off
 ```
 
-## 3. Add hook scripts
-*placeholder*
+### 3. Add hook scripts
+Position the shell scripts `openvpn`, `initvpn` and `postcrypt` in their corresponding directories within the folder structure down below. 
 
-```
+> **/etc/initramfs-tools** should look like this:
+```bash
 .
 ├── conf.d
-│   └── resume
+│   └── resume
 ├── hooks
-│   └── openvpn
+│   └── openvpn # PLACE HERE
 ├── initramfs.conf
 ├── modules
 ├── scripts
-│   ├── init-bottom
-│   │   └── postcrypt
-│   ├── init-premount
-│   ├── init-top
-│   ├── local-bottom
-│   ├── local-premount
-│   ├── local-top
-│   │   └── initvpn
-│   ├── nfs-bottom
-│   ├── nfs-premount
-│   ├── nfs-top
-│   └── panic
+│   ├── init-bottom
+│   │   └── postcrypt # PLACE HERE
+│   ├── init-premount
+│   ├── init-top
+│   ├── local-bottom
+│   ├── local-premount
+│   ├── local-top
+│   │   └── initvpn # PLACE HERE
+│   ├── nfs-bottom
+│   ├── nfs-premount
+│   ├── nfs-top
+│   └── panic
 └── update-initramfs.conf
+```
+
+### 4. Adjust VPN config name
+Replace `<PLACEHOLDER>.conf` with the specific name of your OpenVPN configuration file. This ensures that the script points to the correct OpenVPN configuration during boot.
+
+> **/etc/initramfs-tools/scripts/local-top/initvpn** should look like this:
+```bash
+#!/bin/sh
+
+PREREQ=""
+
+prereqs()
+{
+    echo "$PREREQ"
+}
+
+case $1 in
+    prereqs)
+        prereqs
+        exit 0
+    ;;
+esac
+
+sleep 1
+
+echo "> Starting OpenVPN daemon"
+openvpn --daemon --config /etc/openvpn/whatev33r.conf
 ```
