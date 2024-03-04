@@ -1,0 +1,21 @@
+#!/bin/sh
+
+PREREQ=""
+
+prereqs()
+{
+    echo "$PREREQ"
+}
+
+case $1 in
+    prereqs)
+        prereqs
+        exit 0
+    ;;
+esac
+
+sleep 1
+
+echo "> Kill OpenVPN Session / Release DHCP Lease"
+killall openvpn
+dhclient -i eth0 -r -v
