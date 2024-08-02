@@ -181,5 +181,5 @@ esac
 sleep 1
 
 echo "> Starting OpenVPN daemon"
-openvpn --daemon --config /etc/openvpn/whatev33r.conf
+openvpn --daemon --config /etc/openvpn/<PLACEHOLDER>.conf
 ```
