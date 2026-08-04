@@ -94,24 +94,7 @@ chmod 600 /etc/dropbear/initramfs/authorized_keys
 Set up the system to load the tun kernel module automatically during startup. This facilitates the establishment of a VPN connection from within the BusyBox environment.
 
 ```bash
-echo "tun" >> modules
-```
-
-> **/etc/initramfs-tools/modules** should look like this:
-```bash
-# List of modules that you want to include in your initramfs.
-# They will be loaded at boot time in the order below.
-#
-# Syntax:  module_name [args ...]
-#
-# You must run update-initramfs(8) to effect this change.
-#
-# Examples:
-#
-# raid1
-# sd_mod
-bochs
-tun
+echo "tun" >> /etc/initramfs-tools/modules
 ```
 
 ### 2. Setup networking in initramfs config
