@@ -183,3 +183,9 @@ sleep 1
 echo "> Starting OpenVPN daemon"
 openvpn --daemon --config /etc/openvpn/<PLACEHOLDER>.conf
 ```
+
+### 5. Update Initramfs
+Don't forget to update your Initramfs before rebooting the System!
+```bash
+update-initramfs -uv
+```
