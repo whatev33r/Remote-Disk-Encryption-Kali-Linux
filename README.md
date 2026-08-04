@@ -78,7 +78,7 @@ DROPBEAR_OPTIONS="-I 600 -j -k -p 2222 -s -c cryptroot-unlock"
 Every user is required to generate a unique RSA key on their individual client machines. This RSA key pair includes a public key, which will be shared for authentication, and a private key, which should be securely retained on the user's machine.
 
 ```bash
-ssh-keygen -t rsa -f .ssh/unlock_luks
+ssh-keygen -t rsa -f ~/.ssh/unlock_luks
 ```
 
 Collect and append the public keys of all users requiring access to the machine to a newly created **authorized_keys** file located in `/etc/dropbear/initramfs`. This file serves as the authentication list for the Dropbear SSH server during the early boot process, allowing specified users to remotely unlock the root disk.
